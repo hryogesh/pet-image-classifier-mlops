@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    image: catsdogs:latest
+    ports:
+      - '8000:8000'
+    environment:
+      - MODEL_PATH=/app/models/model.pt
+    volumes:
+      - ./models:/app/models

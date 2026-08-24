@@ -1,0 +1,12 @@
+__pycache__/
+venv/
+.env
+mlruns/
+models/
+data/processed/
+data/raw/
+*.pyc
+*.pkl
+*.pt
+/.pytest_cache
+.DS_Store
