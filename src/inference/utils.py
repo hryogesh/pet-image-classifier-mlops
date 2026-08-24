@@ -3,7 +3,7 @@ import time
 from PIL import Image
 import torch
 import torchvision.transforms as transforms
-from model import load_model
+from src.model import load_model
 
 
 IMG_SIZE = 224

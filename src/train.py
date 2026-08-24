@@ -9,7 +9,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
-from model import build_model, save_model
+from src.model import build_model, save_model
 
 
 def train(data_dir, save_dir, epochs=3, batch_size=16, lr=1e-3, img_size=224, device=None):
