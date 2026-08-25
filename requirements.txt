@@ -11,3 +11,4 @@ python-multipart==0.0.6
 requests==2.31.0
 kagglehub
 matplotlib==3.8.1
+prometheus-client==0.17.0

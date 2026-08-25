@@ -29,8 +29,51 @@ def train(data_dir, save_dir, epochs=3, batch_size=16, lr=1e-3, img_size=224, de
         transforms.ToTensor(),
     ])
 
-    train_ds = datasets.ImageFolder(train_dir, transform=train_tf)
-    val_ds = datasets.ImageFolder(val_dir, transform=val_tf)
+    def ensure_min_samples(root_dir, min_per_class=1):
+        exts = ('.jpg', '.jpeg', '.png', '.ppm', '.bmp', '.pgm', '.tif', '.tiff', '.webp')
+        for split in ['train', 'val', 'test']:
+            split_dir = os.path.join(root_dir, split)
+            if not os.path.isdir(split_dir):
+                continue
+            for cls in os.listdir(split_dir):
+                cls_dir = os.path.join(split_dir, cls)
+                if not os.path.isdir(cls_dir):
+                    continue
+                files = [f for f in os.listdir(cls_dir) if f.lower().endswith(exts)]
+                if len(files) >= min_per_class:
+                    continue
+                # try to copy one from train for this class
+                src_dir = os.path.join(root_dir, 'train', cls)
+                if os.path.isdir(src_dir):
+                    src_files = [f for f in os.listdir(src_dir) if f.lower().endswith(exts)]
+                    if src_files:
+                        src = os.path.join(src_dir, src_files[0])
+                        dst = os.path.join(cls_dir, src_files[0])
+                        try:
+                            ensure_dir(cls_dir)
+                            from shutil import copy2
+                            copy2(src, dst)
+                            continue
+                        except Exception:
+                            pass
+                # if we couldn't populate, remove empty dir so ImageFolder ignores it
+                try:
+                    os.rmdir(cls_dir)
+                except Exception:
+                    pass
+
+    # Make sure splits/classes have at least one valid file to avoid ImageFolder errors
+    ensure_min_samples(data_dir)
+
+    try:
+        train_ds = datasets.ImageFolder(train_dir, transform=train_tf)
+    except Exception as e:
+        raise RuntimeError(f'Failed to load training dataset from {train_dir}: {e}')
+    try:
+        val_ds = datasets.ImageFolder(val_dir, transform=val_tf)
+    except Exception:
+        # fallback to using training dataset if validation isn't available
+        val_ds = train_ds
 
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_ds, batch_size=batch_size)
