@@ -45,6 +45,22 @@ dvc remote modify storage secret_access_key <KEY>
 dvc push
 ```
 
+SSH remote example
+
+To configure an SSH-backed remote use the helper script:
+
+```bash
+# configure remote named 'storage-ssh' that points to /srv/dvc-storage on host 10.0.0.5
+bash scripts/config_dvc_ssh.sh storage-ssh deploy@10.0.0.5:/srv/dvc-storage --identity-file ~/.ssh/id_rsa
+
+# push data to the new remote
+dvc push -r storage-ssh
+```
+
+Notes about SSH remote
+- The helper stores the SSH key location in your local DVC config (not committed) using `--local`.
+- Ensure the remote path is writable by the SSH user and that the server has `dvc` prerequisites (a plain filesystem remote works without server-side DVC).
+
 Pulling data on another machine
 
 ```bash

@@ -1,0 +1,4 @@
+['remote "storage"']
+    url = ../local::.dvc_storage
+['remote "storage-ssh"']
+    url = ssh://deploy@10.0.0.5:/srv/dvc-storage
