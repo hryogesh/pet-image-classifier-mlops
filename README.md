@@ -149,12 +149,81 @@ aggregator.
 
 ## Useful scripts
 
-- `scripts/build_and_run.sh` — builds an image and runs it with `docker run`.
-- `scripts/checkin_remote.sh` — helper to initialize git and push to remote.
-- `scripts/package_artifacts.sh` — packages source/config files into a zip.
+ - `scripts/run_container_and_test.sh` — builds image, runs container (mounts `models/`) and runs health + predict smoke tests (use on a Docker-capable host).
+ - `scripts/install_podman.sh` — (RHEL/CentOS) installs `podman` and optionally runs a smoke test; requires `sudo`.
 
 ## Troubleshooting
 
+
+## Using the UIs (MLflow and Inference)
+
+MLflow (experiments / artifacts):
+
+- Start locally:
+```bash
+mlflow ui --backend-store-uri mlruns --host 0.0.0.0 --port 5000
+# open http://127.0.0.1:5000
+```
+- What to look for: experiment list (left), runs table, params/metrics, and `Artifacts` for model files and plots.
+
+FastAPI inference docs (Swagger / ReDoc):
+
+- Start the service (local model):
+```bash
+export MODEL_PATH=models/model.pt
+python -m uvicorn src.inference.app:app --host 127.0.0.1 --port 8000
+```
+- Open API docs:
+  - Swagger UI: http://127.0.0.1:8000/docs
+  - ReDoc: http://127.0.0.1:8000/redoc
+- Endpoints:
+  - `GET /health` — returns `{ "status": "ok" }`
+  - `POST /predict` — form field `file` with image; returns JSON `label`, `probs`, `latency`.
+
+## Container verification (local & CI)
+
+Local (requires Docker or Podman):
+
+```bash
+# build and run locally
+docker build -t catsdogs:local .
+docker run --rm -d --name catsdogs_test -p 8000:8000 -v "$(pwd)/models:/app/models" \
+  -e MODEL_PATH=/app/models/model.pt catsdogs:local
+# wait then test
+curl -sS http://127.0.0.1:8000/health
+curl -sS -X POST "http://127.0.0.1:8000/predict" -F "file=@data/raw/PetImages/Cat/7157.jpg"
+docker stop catsdogs_test
+```
+
+Or use the helper script on a Docker-capable machine:
+
+```bash
+chmod +x scripts/run_container_and_test.sh
+./scripts/run_container_and_test.sh data/raw/PetImages/Cat/7157.jpg
+```
+
+CI (GitHub Actions): the workflow `.github/workflows/container-smoke.yml` builds the image and runs the same smoke tests on `ubuntu-latest`. Push or open a PR to trigger it.
+
+## DVC push to SSH remote (when remote is reachable)
+
+If you want to push DVC-tracked artifacts to an SSH remote (`storage-ssh`), ensure:
+- the remote host is reachable from your runner (e.g. `10.0.0.5:22`), and
+- you have an SSH private key available.
+
+Recommended (writes key only to local config):
+
+```bash
+# set local per-user key path for DVC (does not store private key in repo)
+dvc remote modify storage-ssh --local ssh_keyfile ~/.ssh/id_rsa
+
+# test SSH connectivity
+ssh -i ~/.ssh/id_rsa -o BatchMode=yes -o ConnectTimeout=5 deploy@10.0.0.5 'echo SSH_OK'
+
+# push data
+dvc push -r storage-ssh -v
+```
+
+If the host is unreachable (timeout) you'll need to run `dvc push` from a host with network access to that SSH remote, or switch to a cloud remote (S3/GCS) and configure DVC accordingly.
 - If `pytest` is not found, ensure you installed `requirements.txt` inside the
   active virtualenv.
 - If Docker Compose fails, ensure Docker daemon is running and you have
