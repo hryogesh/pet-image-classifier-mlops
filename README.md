@@ -16,15 +16,27 @@ Prerequisites
 - Docker & Docker Compose (for containerized inference)
 - DVC (optional, if you want to pull dataset from DVC remote)
 
-Recommended: create and activate a virtual environment before installing
-dependencies:
+Recommended: create and activate a virtual environment before installing dependencies.
+
+Minimal (only MLflow + DVC, faster):
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install --upgrade pip
+python -m pip install --upgrade pip
+pip install mlflow dvc
+```
+
+Full (all project dependencies — includes PyTorch and may take longer):
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
+
+If you prefer system/user installs, deactivate the venv and use `python -m pip install --user ...` instead, but avoid `--user` inside an active virtualenv.
 
 1) Prepare data
 
@@ -43,6 +55,25 @@ dvc pull
 ```bash
 python -m src.data.preprocess --input_dir data/raw --output_dir data/processed --img_size 224
 ```
+
+Download dataset (helper script)
+
+You can use the bundled helper script to download the Kaggle Cats & Dogs dataset into `data/raw`.
+
+```bash
+# make script executable first (only required once)
+chmod +x scripts/download_dataset.sh
+
+# default dataset and target dir
+./scripts/download_dataset.sh
+
+# or specify dataset slug and target dir
+./scripts/download_dataset.sh bhavikjikadara/dog-and-cat-classification-dataset data/raw
+```
+
+Notes:
+- The script installs `kagglehub` into user scope if it's missing.
+- Ensure your Kaggle credentials are available if `kagglehub` requires them (see `kagglehub` docs).
 
 3) Train a model (saves best model to `models/model.pt` and logs runs to MLflow):
 
@@ -137,3 +168,18 @@ If you'd like, I can also:
 - add a small `scripts/run_end_to_end.sh` wrapper that runs preprocess → train → package → docker-compose up
 - implement simple post-deployment performance collection (M5.2)
 Please tell me which next step you'd like.
+
+## Data Versioning & Experiment Tracking
+
+- Data versioning: this repo includes a `dvc.yaml` pipeline with `preprocess` and `train` stages. Use `dvc repro` to run the pipeline and `dvc pull` to fetch data from a configured remote.
+- The `preprocess` stage writes processed images to `data/processed` (this is a DVC tracked output).
+- The `train` stage writes the best model to `models/model.pt` and is configured as a DVC output in `dvc.yaml`.
+
+- Experiment tracking: training runs are logged to MLflow in the local `mlruns/` folder by default. Launch the UI with:
+
+```bash
+mlflow ui --backend-store-uri mlruns --port 5000
+# open http://localhost:5000
+```
+
+The training script now also logs loss curves, a confusion matrix image, and a classification report as MLflow artifacts.

@@ -10,3 +10,6 @@ data/raw/
 *.pt
 /.pytest_cache
 .DS_Store
+.venv/
+.cache/
+.ipynb_checkpoints/

@@ -8,8 +8,10 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix, classification_report
 
-from src.model import build_model, save_model
+from src.model import build_model, save_model, load_model
 
 
 def train(data_dir, save_dir, epochs=3, batch_size=16, lr=1e-3, img_size=224, device=None):
@@ -46,6 +48,8 @@ def train(data_dir, save_dir, epochs=3, batch_size=16, lr=1e-3, img_size=224, de
         mlflow.log_param('lr', lr)
 
         best_val = 0.0
+        train_losses = []
+        val_losses = []
         for epoch in range(epochs):
             model.train()
             running = 0.0
@@ -60,7 +64,8 @@ def train(data_dir, save_dir, epochs=3, batch_size=16, lr=1e-3, img_size=224, de
                 optimizer.step()
                 running += loss.item() * xb.size(0)
                 total += xb.size(0)
-            train_loss = running / total
+            train_loss = running / total if total else 0.0
+            train_losses.append(train_loss)
 
             model.eval()
             correct = 0
@@ -78,6 +83,7 @@ def train(data_dir, save_dir, epochs=3, batch_size=16, lr=1e-3, img_size=224, de
                     total += xb.size(0)
             val_loss = val_loss / total if total else 0.0
             val_acc = correct / total if total else 0.0
+            val_losses.append(val_loss)
 
             mlflow.log_metric('train_loss', train_loss, step=epoch)
             mlflow.log_metric('val_loss', val_loss, step=epoch)
@@ -90,6 +96,76 @@ def train(data_dir, save_dir, epochs=3, batch_size=16, lr=1e-3, img_size=224, de
                 out_path = os.path.join(save_dir, 'model.pt')
                 save_model(model, out_path)
                 mlflow.log_artifact(out_path)
+
+        # Plot and log loss curves
+        try:
+            Path(save_dir).mkdir(parents=True, exist_ok=True)
+            loss_fig = os.path.join(save_dir, 'loss_curve.png')
+            plt.figure()
+            plt.plot(range(1, len(train_losses) + 1), train_losses, label='train_loss')
+            plt.plot(range(1, len(val_losses) + 1), val_losses, label='val_loss')
+            plt.xlabel('epoch')
+            plt.ylabel('loss')
+            plt.legend()
+            plt.title('Loss curve')
+            plt.savefig(loss_fig)
+            plt.close()
+            mlflow.log_artifact(loss_fig)
+        except Exception:
+            pass
+
+        # Evaluate and log confusion matrix on test set if present
+        test_dir = os.path.join(data_dir, 'test')
+        if os.path.exists(test_dir):
+            test_ds = datasets.ImageFolder(test_dir, transform=val_tf)
+            test_loader = DataLoader(test_ds, batch_size=batch_size)
+
+            # load best model
+            best_model_path = os.path.join(save_dir, 'model.pt')
+            if os.path.exists(best_model_path):
+                best = load_model(best_model_path, device=device)
+            else:
+                best = model
+
+            y_true = []
+            y_pred = []
+            with torch.no_grad():
+                for xb, yb in test_loader:
+                    xb = xb.to(device)
+                    out = best(xb)
+                    preds = out.argmax(dim=1).cpu().numpy()
+                    y_pred.extend(preds.tolist())
+                    y_true.extend(yb.numpy().tolist())
+
+            if y_true:
+                cm = confusion_matrix(y_true, y_pred)
+                try:
+                    cm_fig = os.path.join(save_dir, 'confusion_matrix.png')
+                    plt.figure()
+                    plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
+                    plt.title('Confusion matrix')
+                    plt.colorbar()
+                    tick_marks = list(range(len(test_ds.classes)))
+                    plt.xticks(tick_marks, test_ds.classes, rotation=45)
+                    plt.yticks(tick_marks, test_ds.classes)
+                    plt.ylabel('True label')
+                    plt.xlabel('Predicted label')
+                    plt.tight_layout()
+                    plt.savefig(cm_fig)
+                    plt.close()
+                    mlflow.log_artifact(cm_fig)
+                except Exception:
+                    pass
+
+                # classification report
+                try:
+                    report = classification_report(y_true, y_pred, target_names=test_ds.classes)
+                    rpt_file = os.path.join(save_dir, 'classification_report.txt')
+                    with open(rpt_file, 'w') as fh:
+                        fh.write(report)
+                    mlflow.log_artifact(rpt_file)
+                except Exception:
+                    pass
 
 
 if __name__ == '__main__':

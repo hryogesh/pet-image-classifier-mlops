@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pet Image Classifier MLOps Setup Guide</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #4b5563;
+      --accent: #2563eb;
+      --accent-2: #0f766e;
+      --border: #dfe7f1;
+      --code: #0f172a;
+      --code-bg: #f8fafc;
+      --success: #166534;
+      --warning: #92400e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 24px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+    }
+    h1, h2, h3 {
+      color: var(--text);
+      margin-top: 0;
+    }
+    .step {
+      margin: 24px 0;
+      padding: 18px 20px;
+      border: 1px solid var(--border);
+      border-left: 5px solid var(--accent);
+      background: #fbfdff;
+      border-radius: 10px;
+    }
+    code, pre {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+    pre {
+      background: var(--code-bg);
+      color: var(--code);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    code {
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.96em;
+    }
+    ul, ol {
+      padding-left: 18px;
+    }
+    .note {
+      background: #eff6ff;
+      border-left: 5px solid var(--accent);
+      padding: 14px 16px;
+      border-radius: 8px;
+      color: var(--muted);
+    }
+    .warning {
+      background: #fffbeb;
+      border-left: 5px solid #f59e0b;
+      padding: 14px 16px;
+      border-radius: 8px;
+      color: var(--warning);
+    }
+    .success {
+      background: #ecfdf5;
+      border-left: 5px solid var(--success);
+      padding: 14px 16px;
+      border-radius: 8px;
+      color: var(--success);
+    }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>Pet Image Classifier MLOps Project Guide</h1>
+      <p>This guide helps you set up and run the project on a Linux machine with the same environment and workflow used in this repository.</p>
+
+      <div class="note">
+        This document is a full step-by-step setup and execution guide. You can copy the commands directly into a terminal.
+      </div>
+
+      <div class="step">
+        <h2>Step 1: Install System Requirements</h2>
+        <pre>sudo apt update
+sudo apt install -y python3 python3-venv python3-pip git docker.io docker-compose-plugin</pre>
+        <p>Check Python and Docker:</p>
+        <pre>python3 --version
+docker --version
+docker compose version</pre>
+      </div>
+
+      <div class="step">
+        <h2>Step 2: Start Docker</h2>
+        <pre>sudo systemctl start docker
+sudo systemctl enable docker</pre>
+      </div>
+
+      <div class="step">
+        <h2>Step 3: Clone the Repository</h2>
+        <pre>git clone &lt;your-repository-url&gt;
+cd pet-image-classifier-mlops</pre>
+      </div>
+
+      <div class="step">
+        <h2>Step 4: Create a Virtual Environment</h2>
+        <pre>python3 -m venv .venv
+source .venv/bin/activate</pre>
+      </div>
+
+      <div class="step">
+        <h2>Step 5: Install Project Dependencies</h2>
+        <pre>python -m pip install --upgrade pip
+pip install -r requirements.txt</pre>
+
+        <div class="warning">
+          If you see a NumPy/Torch compatibility issue, run this fix:
+          <pre>pip install "numpy&lt;2"</pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <h2>Step 6: Set Up Kaggle Credentials</h2>
+        <p>Create the Kaggle config file:</p>
+        <pre>mkdir -p ~/.kaggle
+printf '%s\n' '{"username":"YOUR_KAGGLE_USERNAME","key":"YOUR_KAGGLE_KEY"}' > ~/.kaggle/kaggle.json
+chmod 600 ~/.kaggle/kaggle.json</pre>
+        <p>Replace <code>YOUR_KAGGLE_USERNAME</code> and <code>YOUR_KAGGLE_KEY</code> with your actual Kaggle account values.</p>
+      </div>
+
+      <div class="step">
+        <h2>Step 7: Download the Kaggle Dataset</h2>
+        <pre>python -m src.data.download_dataset \
+  --dataset_name bhavikjikadara/dog-and-cat-classification-dataset \
+  --target_dir data/raw</pre>
+
+        <p>Or use the Python snippet:</p>
+        <pre>import kagglehub
+path = kagglehub.dataset_download("bhavikjikadara/dog-and-cat-classification-dataset")
+print(path)</pre>
+      </div>
+
+      <div class="step">
+        <h2>Step 8: Check Dataset Layout</h2>
+        <p>The project expects data under <code>data/raw</code> with folders like:</p>
+        <pre>data/
+  raw/
+    cats/
+    dogs/</pre>
+        <p>If not present, the preprocessing script can handle flat folders containing filenames with <code>cat</code> or <code>dog</code> in their names.</p>
+      </div>
+
+      <div class="step">
+        <h2>Step 9: Preprocess the Data</h2>
+        <pre>python -m src.data.preprocess --input_dir data/raw --output_dir data/processed --img_size 224</pre>
+      </div>
+
+      <div class="step">
+        <h2>Step 10: Train the Model</h2>
+        <pre>python -m src.train --data_dir data/processed --save_dir models --epochs 3</pre>
+
+        <p>The model artifact is stored as:</p>
+        <pre>models/model.pt</pre>
+      </div>
+
+      <div class="step">
+        <h2>Step 11: Run the Inference API</h2>
+        <pre>uvicorn src.inference.app:app --host 0.0.0.0 --port 8000</pre>
+
+        <p>Health check:</p>
+        <pre>curl http://localhost:8000/health</pre>
+      </div>
+
+      <div class="step">
+        <h2>Step 12: Run the Docker Compose Service</h2>
+        <pre>docker compose build
+docker compose up -d</pre>
+
+        <p>Smoke test:</p>
+        <pre>curl -f http://localhost:8000/health</pre>
+      </div>
+
+      <div class="step">
+        <h2>Step 13: Run Tests</h2>
+        <pre>python -m pytest -q</pre>
+
+        <div class="success">
+          Expected result: all tests should pass.
+        </div>
+      </div>
+
+      <div class="step">
+        <h2>Step 14: Package for Submission</h2>
+        <pre>./scripts/package_artifacts.sh</pre>
+        <p>This creates a ZIP artifact for project submission.</p>
+      </div>
+
+      <div class="step">
+        <h2>Step 15: Useful Notes</h2>
+        <ul>
+          <li>Keep the virtual environment active while working.</li>
+          <li>Do not commit your Kaggle API key to Git.</li>
+          <li>Make sure Docker is running before using <code>docker compose</code>.</li>
+          <li>Use the same Linux environment for consistent package behavior.</li>
+        </ul>
+      </div>
+
+      <div class="step">
+        <h2>Quick Full Setup Script</h2>
+        <pre>sudo apt update
+sudo apt install -y python3 python3-venv python3-pip git docker.io docker-compose-plugin
+sudo systemctl start docker
+sudo systemctl enable docker
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+pip install "numpy&lt;2"
+mkdir -p ~/.kaggle
+printf '%s\n' '{"username":"YOUR_KAGGLE_USERNAME","key":"YOUR_KAGGLE_KEY"}' > ~/.kaggle/kaggle.json
+chmod 600 ~/.kaggle/kaggle.json
+python -m src.data.download_dataset --dataset_name bhavikjikadara/dog-and-cat-classification-dataset --target_dir data/raw
+python -m src.data.preprocess --input_dir data/raw --output_dir data/processed --img_size 224
+python -m src.train --data_dir data/processed --save_dir models --epochs 3
+python -m pytest -q</pre>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
