@@ -8,6 +8,7 @@ from .utils import preprocess_image_bytes, load, predict
 
 
 MODEL_PATH = os.environ.get('MODEL_PATH', '/app/models/model.pt')
+MODEL_NAME = os.environ.get('MODEL_NAME', 'resnet18')
 
 app = FastAPI()
 logger = logging.getLogger('uvicorn.error')
@@ -32,8 +33,8 @@ except Exception:
 @app.on_event('startup')
 def startup():
     global MODEL
-    MODEL = load(MODEL_PATH)
-    logger.info(f'Loaded model from {MODEL_PATH}')
+    MODEL = load(MODEL_PATH, model_name=MODEL_NAME)
+    logger.info(f'Loaded {MODEL_NAME} model from {MODEL_PATH}')
 
 
 @app.get('/health')

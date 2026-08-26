@@ -12,7 +12,7 @@ locally and how to produce the submission package.
 
 Prerequisites
 - Git
-- Python 3.10
+- Python 3.14
 - Docker & Docker Compose (for containerized inference)
 - DVC (optional, if you want to pull dataset from DVC remote)
 
@@ -78,8 +78,11 @@ Notes:
 3) Train a model (saves best model to `models/model.pt` and logs runs to MLflow):
 
 ```bash
-python -m src.train --data_dir data/processed --save_dir models --epochs 3
+python -m src.train --data_dir data/processed --save_dir models --epochs 3 --model_name resnet18
 # optional: increase --epochs and set --batch_size
+
+# Optional lightweight baseline comparison
+python -m src.train --data_dir data/processed --save_dir models/baseline --epochs 3 --model_name baseline_cnn
 ```
 
 To view MLflow UI locally:

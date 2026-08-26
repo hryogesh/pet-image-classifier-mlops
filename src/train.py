@@ -14,7 +14,8 @@ from sklearn.metrics import confusion_matrix, classification_report
 from src.model import build_model, save_model, load_model
 
 
-def train(data_dir, save_dir, epochs=3, batch_size=16, lr=1e-3, img_size=224, device=None):
+def train(data_dir, save_dir, epochs=3, batch_size=16, lr=1e-3, img_size=224,
+          model_name='resnet18', device=None):
     device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
     train_dir = os.path.join(data_dir, 'train')
     val_dir = os.path.join(data_dir, 'val')
@@ -78,7 +79,7 @@ def train(data_dir, save_dir, epochs=3, batch_size=16, lr=1e-3, img_size=224, de
     train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_ds, batch_size=batch_size)
 
-    model = build_model(num_classes=2)
+    model = build_model(num_classes=2, model_name=model_name)
     model.to(device)
 
     criterion = nn.CrossEntropyLoss()
@@ -90,7 +91,8 @@ def train(data_dir, save_dir, epochs=3, batch_size=16, lr=1e-3, img_size=224, de
         mlflow.log_param('batch_size', batch_size)
         mlflow.log_param('lr', lr)
 
-        best_val = 0.0
+        mlflow.log_param('model_name', model_name)
+        best_val = -1.0
         train_losses = []
         val_losses = []
         for epoch in range(epochs):
@@ -166,7 +168,7 @@ def train(data_dir, save_dir, epochs=3, batch_size=16, lr=1e-3, img_size=224, de
             # load best model
             best_model_path = os.path.join(save_dir, 'model.pt')
             if os.path.exists(best_model_path):
-                best = load_model(best_model_path, device=device)
+                best = load_model(best_model_path, device=device, model_name=model_name)
             else:
                 best = model
 
@@ -219,5 +221,7 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', type=int, default=16)
     parser.add_argument('--lr', type=float, default=1e-3)
     parser.add_argument('--img_size', type=int, default=224)
+    parser.add_argument('--model_name', choices=['resnet18', 'baseline_cnn'], default='resnet18')
     args = parser.parse_args()
-    train(args.data_dir, args.save_dir, epochs=args.epochs, batch_size=args.batch_size, lr=args.lr, img_size=args.img_size)
+    train(args.data_dir, args.save_dir, epochs=args.epochs, batch_size=args.batch_size,
+          lr=args.lr, img_size=args.img_size, model_name=args.model_name)

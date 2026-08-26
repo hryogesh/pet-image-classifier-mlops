@@ -27,5 +27,5 @@ def predict(model, img_tensor, device='cpu'):
     return probs
 
 
-def load(path, device='cpu'):
-    return load_model(path, device=device)
+def load(path, device='cpu', model_name='resnet18'):
+    return load_model(path, device=device, model_name=model_name)

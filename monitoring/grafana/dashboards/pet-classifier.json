@@ -1,0 +1,25 @@
+{
+  "title": "Pet Image Classifier",
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Requests",
+      "gridPos": {"h": 4, "w": 8, "x": 0, "y": 0},
+      "targets": [{"expr": "inference_requests_total", "refId": "A"}]
+    },
+    {
+      "type": "stat",
+      "title": "Errors",
+      "gridPos": {"h": 4, "w": 8, "x": 8, "y": 0},
+      "targets": [{"expr": "inference_errors_total", "refId": "A"}]
+    },
+    {
+      "type": "timeseries",
+      "title": "Latency",
+      "gridPos": {"h": 8, "w": 16, "x": 0, "y": 4},
+      "targets": [{"expr": "rate(inference_latency_seconds_sum[1m]) / rate(inference_latency_seconds_count[1m])", "refId": "A"}]
+    }
+  ]
+}

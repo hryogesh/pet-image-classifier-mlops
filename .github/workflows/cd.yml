@@ -13,7 +13,8 @@ jobs:
         uses: docker/setup-buildx-action@v3
       - name: Build and run docker-compose
         run: |
-          docker compose build
+          docker compose pull prometheus grafana || true
+          docker compose build app
           docker compose up -d
       - name: Build image for push
         run: |
@@ -41,6 +42,6 @@ jobs:
           bash scripts/smoke_test.sh http://localhost:8000
           echo 'Running predictive smoke test (posts sample image)'
           bash scripts/smoke_test_predict.sh http://localhost:8000 || (
-            echo 'Predictive smoke test failed; dumping logs' && docker compose logs web || true
+            echo 'Predictive smoke test failed; dumping logs' && docker compose logs app || true
             exit 1
           )

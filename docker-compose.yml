@@ -7,5 +7,23 @@ services:
       - '8000:8000'
     environment:
       - MODEL_PATH=/app/models/model.pt
+      - MODEL_NAME=${MODEL_NAME:-resnet18}
     volumes:
       - ./models:/app/models
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - app
+  grafana:
+    image: grafana/grafana:11.1.0
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus

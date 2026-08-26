@@ -3,3 +3,4 @@ train:
   batch_size: 16
   lr: 0.001
   img_size: 224
+  model_name: resnet18
