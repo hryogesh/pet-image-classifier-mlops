@@ -8,11 +8,14 @@ service (FastAPI), automated tests, and CI/CD workflows using GitHub Actions.
 This README documents how to set up and run the complete end-to-end flow
 locally and how to produce the submission package.
 
+For the assignment-specific M1-M5 rubric mapping and Windows small-batch demo,
+see [docs/ASSIGNMENT_RUNBOOK.md](docs/ASSIGNMENT_RUNBOOK.md).
+
 ## Quick Start (local end-to-end)
 
 Prerequisites
 - Git
-- Python 3.10
+- Python 3.14
 - Docker & Docker Compose (for containerized inference)
 - DVC (optional, if you want to pull dataset from DVC remote)
 
@@ -78,8 +81,11 @@ Notes:
 3) Train a model (saves best model to `models/model.pt` and logs runs to MLflow):
 
 ```bash
-python -m src.train --data_dir data/processed --save_dir models --epochs 3
+python -m src.train --data_dir data/processed --save_dir models --epochs 3 --model_name resnet18
 # optional: increase --epochs and set --batch_size
+
+# Optional lightweight baseline comparison
+python -m src.train --data_dir data/processed --save_dir models/baseline --epochs 3 --model_name baseline_cnn
 ```
 
 To view MLflow UI locally:
@@ -150,7 +156,6 @@ aggregator.
 ## Useful scripts
 
  - `scripts/run_container_and_test.sh` — builds image, runs container (mounts `models/`) and runs health + predict smoke tests (use on a Docker-capable host).
- - `scripts/install_podman.sh` — (RHEL/CentOS) installs `podman` and optionally runs a smoke test; requires `sudo`.
 
 ## Troubleshooting
 
@@ -232,11 +237,6 @@ If the host is unreachable (timeout) you'll need to run `dvc push` from a host w
   exists.
 
 ---
-
-If you'd like, I can also:
-- add a small `scripts/run_end_to_end.sh` wrapper that runs preprocess → train → package → docker-compose up
-- implement simple post-deployment performance collection (M5.2)
-Please tell me which next step you'd like.
 
 ## Data Versioning & Experiment Tracking
 

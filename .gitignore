@@ -2,9 +2,12 @@ __pycache__/
 venv/
 .env
 mlruns/
+mlflow.db
 models/
 data/processed/
 data/raw/
+data/raw_e2e/
+demo/
 *.pyc
 *.pkl
 *.pt
@@ -12,4 +15,5 @@ data/raw/
 .DS_Store
 .venv/
 .cache/
+.dvc_storage/
 .ipynb_checkpoints/

@@ -17,10 +17,22 @@ python -m pip install --user dvc
 2. Initialize DVC (run once):
 
 ```bash
-bash scripts/init_dvc.sh
+py -3.14 -m dvc init
 ```
 
 This will initialize DVC in the repo and create a local remote at `./.dvc/remotes/local` (a placeholder).
+
+Windows PowerShell alternative:
+
+```powershell
+py -3.14 -m pip install dvc
+py -3.14 -m dvc remote add -f storage "local::.dvc_storage"
+py -3.14 -m dvc remote default storage
+py -3.14 -m dvc remote list
+```
+
+The repository defaults to this local remote, so it works without an SSH server.
+The remote data is stored in `.dvc_storage` and should not be committed to Git.
 
 3. Track your dataset and model artifacts with DVC:
 
@@ -45,21 +57,13 @@ dvc remote modify storage secret_access_key <KEY>
 dvc push
 ```
 
-SSH remote example
+On Windows, use the same commands through the Python launcher when `dvc` is not
+on `PATH`:
 
-To configure an SSH-backed remote use the helper script:
-
-```bash
-# configure remote named 'storage-ssh' that points to /srv/dvc-storage on host 10.0.0.5
-bash scripts/config_dvc_ssh.sh storage-ssh deploy@10.0.0.5:/srv/dvc-storage --identity-file ~/.ssh/id_rsa
-
-# push data to the new remote
-dvc push -r storage-ssh
+```powershell
+py -3.14 -m dvc push -r storage
+py -3.14 -m dvc status
 ```
-
-Notes about SSH remote
-- The helper stores the SSH key location in your local DVC config (not committed) using `--local`.
-- Ensure the remote path is writable by the SSH user and that the server has `dvc` prerequisites (a plain filesystem remote works without server-side DVC).
 
 Pulling data on another machine
 
