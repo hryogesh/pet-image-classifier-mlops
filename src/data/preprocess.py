@@ -12,14 +12,12 @@ def ensure_dir(p):
 def gather_images(input_dir):
     cats = []
     dogs = []
-    for name in os.listdir(input_dir):
-        path = os.path.join(input_dir, name)
-        if os.path.isdir(path):
-            lname = name.lower()
-            if 'cat' in lname:
-                cats += [os.path.join(path, f) for f in os.listdir(path)]
-            elif 'dog' in lname:
-                dogs += [os.path.join(path, f) for f in os.listdir(path)]
+    for root, dirs, files in os.walk(input_dir):
+        lname = os.path.basename(root).lower()
+        if 'cat' in lname:
+            cats += [os.path.join(root, f) for f in files]
+        elif 'dog' in lname:
+            dogs += [os.path.join(root, f) for f in files]
     if not cats and not dogs:
         for f in os.listdir(input_dir):
             lf = f.lower()

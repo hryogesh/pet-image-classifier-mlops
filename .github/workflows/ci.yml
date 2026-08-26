@@ -45,7 +45,7 @@ jobs:
         run: |
           sleep 5
           bash scripts/smoke_test.sh http://localhost:8000
-          bash scripts/smoke_test_predict.sh http://localhost:8000 data/raw/cats/cat_1.jpg
+          bash scripts/smoke_test_predict.sh http://localhost:8000 data/raw/PetImages/Cat/7157.jpg
       - name: Stop container
         run: |
           docker stop web || true

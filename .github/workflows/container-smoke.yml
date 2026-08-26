@@ -38,8 +38,13 @@ jobs:
       - name: Predict smoke test
         run: |
           echo "Running predict smoke test"
-          curl -sS -X POST "http://127.0.0.1:8000/predict" -F "file=@data/raw/PetImages/Cat/7157.jpg" -o /tmp/pred.json || true
+          curl -fsS -X POST "http://127.0.0.1:8000/predict" \
+            -F "file=@data/raw/PetImages/Cat/7157.jpg" \
+            -o /tmp/pred.json
           cat /tmp/pred.json
+          grep -q '"label"' /tmp/pred.json
+          grep -q '"probs"' /tmp/pred.json
+          grep -q '"latency"' /tmp/pred.json
 
       - name: Stop container
         run: |

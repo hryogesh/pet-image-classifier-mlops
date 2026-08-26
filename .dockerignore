@@ -1,0 +1,12 @@
+.git
+.github
+.dvc
+data
+mlruns
+__pycache__
+.pytest_cache
+*.pyc
+*.zip
+*.log
+docs
+tests

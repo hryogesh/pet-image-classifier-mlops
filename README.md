@@ -8,6 +8,9 @@ service (FastAPI), automated tests, and CI/CD workflows using GitHub Actions.
 This README documents how to set up and run the complete end-to-end flow
 locally and how to produce the submission package.
 
+For the assignment-specific M1-M5 rubric mapping and Windows small-batch demo,
+see [docs/ASSIGNMENT_RUNBOOK.md](docs/ASSIGNMENT_RUNBOOK.md).
+
 ## Quick Start (local end-to-end)
 
 Prerequisites
@@ -153,7 +156,6 @@ aggregator.
 ## Useful scripts
 
  - `scripts/run_container_and_test.sh` — builds image, runs container (mounts `models/`) and runs health + predict smoke tests (use on a Docker-capable host).
- - `scripts/install_podman.sh` — (RHEL/CentOS) installs `podman` and optionally runs a smoke test; requires `sudo`.
 
 ## Troubleshooting
 
@@ -235,11 +237,6 @@ If the host is unreachable (timeout) you'll need to run `dvc push` from a host w
   exists.
 
 ---
-
-If you'd like, I can also:
-- add a small `scripts/run_end_to_end.sh` wrapper that runs preprocess → train → package → docker-compose up
-- implement simple post-deployment performance collection (M5.2)
-Please tell me which next step you'd like.
 
 ## Data Versioning & Experiment Tracking
 
