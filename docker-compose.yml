@@ -1,13 +1,16 @@
 version: '3.8'
 services:
   app:
-    build: .
-    image: catsdogs:latest
+    image: ${APP_IMAGE:-catsdogs:local}
+    pull_policy: ${PULL_POLICY:-never}
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - '8000:8000'
     environment:
       - MODEL_PATH=/app/models/model.pt
-      - MODEL_NAME=${MODEL_NAME:-resnet18}
+      - MODEL_NAME=${MODEL_NAME:-baseline_cnn}
     volumes:
       - ./models:/app/models
   prometheus:
